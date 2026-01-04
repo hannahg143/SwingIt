@@ -1,0 +1,6 @@
+opencv-python-headless>=4.8.0
+mediapipe==0.10.7
+numpy>=1.24.0,<2.0.0
+
+# Using mediapipe 0.10.7 to avoid jax/ml_dtypes dependency issues
+

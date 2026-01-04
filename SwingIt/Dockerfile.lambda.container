@@ -1,0 +1,31 @@
+# Dockerfile for AWS Lambda Container Image
+
+FROM public.ecr.aws/lambda/python:3.11
+
+# Install build tools and system libraries needed for OpenCV and MediaPipe
+RUN yum update -y && \
+    yum install -y gcc gcc-c++ make mesa-libGL mesa-libGL-devel && \
+    yum clean all
+
+# Install dependencies
+COPY requirements_lambda.txt ${LAMBDA_TASK_ROOT}/
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir "numpy>=1.24.0,<2.0.0" && \
+    pip install --no-cache-dir "mediapipe==0.10.7" && \
+    pip uninstall -y opencv-contrib-python 2>/dev/null || true && \
+    pip install --no-cache-dir "opencv-python-headless>=4.8.0" && \
+    pip install --no-cache-dir "numpy>=1.24.0,<2.0.0" --force-reinstall --no-deps
+
+# Verify installations
+RUN python3.11 -c "import cv2; print(f'OpenCV version: {cv2.__version__}')" && \
+    python3.11 -c "import numpy; print(f'NumPy version: {numpy.__version__}')" && \
+    python3.11 -c "import mediapipe; print('MediaPipe imported successfully')" && \
+    echo "All packages verified successfully"
+
+# Copy the Lambda function code
+COPY main.py ${LAMBDA_TASK_ROOT}/
+
+CMD [ "main.lambda_handler" ]
+
